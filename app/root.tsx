@@ -29,7 +29,7 @@ export default function App() {
             </head>
             <body>
                 <div className='bg-teal-500'>
-                    <div className='max-w-screen-2xl m-auto w-full p-2 flex gap-4 items-center'>
+                    <div className='max-w-screen-2xl m-auto w-full py-2 flex gap-4 items-center'>
                         <h1 className='text-xl text-black'>Budget Manager</h1>
                         <div className='flex-1'></div>
                         <select className='select select-secondary w-full max-w-xs'>
@@ -42,7 +42,9 @@ export default function App() {
                         </select>
                     </div>
                 </div>
+                <div className="max-w-screen-2xl m-auto w-full">
                 <Outlet />
+                </div>
                 <ScrollRestoration />
                 <Scripts />
                 <LiveReload />

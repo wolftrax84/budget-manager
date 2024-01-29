@@ -1,0 +1,62 @@
+{
+    "coastal-checking": {
+        "id": "coastal-checking",
+        "displayName": "Coastal - Checking",
+        "history": [],
+        "type": "checking"
+    },
+    "coastal-saving": {
+        "id": "coastal-saving",
+        "displayName": "Coastal - Saving",
+        "history": [],
+        "type": "saving"
+    },
+    "discover-credit": {
+        "id": "discover-credit",
+        "displayName": "Discover - Credit",
+        "history": [],
+        "type": "credit"
+    },
+    "discover-saving": {
+        "id": "discover-saving",
+        "displayName": "Discover - Saving",
+        "history": [],
+        "type": "saving"
+    },
+    "chase-credit": {
+        "id": "chase-credit",
+        "displayName": "Chase - Credit",
+        "history": [],
+        "type": "credit"
+    },
+    "edwardjones-ira": {
+        "id": "edwardjones-ira",
+        "displayName": "EdwardJones - IRA",
+        "history": [],
+        "type": "investment"
+    },
+    "fidelity-401k": {
+        "id": "fidelity-401k",
+        "displayName": "Fidelity - 401k",
+        "history": [],
+        "type": "investment"
+    },
+    "transamerica-401k": {
+        "id": "transamerica-401k",
+        "displayName": "Transamerica - 401k",
+        "history": [],
+        "type": "investment"
+    },
+    "umb-hsa": {
+        "id": "umb-hsa",
+        "displayName": "UMB - HSA",
+        "history": [],
+        "type": "investment"
+    },
+    "healthequity-hsa": {
+        "id": "healthequity-hsa",
+        "displayName": "HealthEquity - HSA",
+        "history": [],
+        "type": "investment"
+    }
+}
