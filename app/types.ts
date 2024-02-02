@@ -18,10 +18,10 @@ export type Transfer = Transaction & {
     transferAccountId: string
 }
 
-export type Accout = {
+export type Account = {
     id: string
     displayName: string
-    history: {month: number, year: number, amount: number}[]
+    history: Record<number, Record<number, number>>
     type: 'credit' | 'checking' | 'saving' | 'investment'
 }
 

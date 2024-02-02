@@ -1,26 +1,15 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-
-import { promises as fs } from "fs";
-import { Accout } from "~/types";
+import { redirect } from '@remix-run/node'
+import { promises as fs } from 'fs'
 
 export const loader = async () => {
-  const jsonDirectory = "app/data";
-  // Read the json data file data.json
-  const fileContents = await fs.readFile(jsonDirectory + "/accounts.json", "utf8");
-  // Parse the json data file contents into a json object
-  const data = JSON.parse(fileContents) as Record<string, Accout>;
-
-  return json({
-    accounts: data,
-  });
-};
-
-export default function Index() {
-    const {accounts} = useLoaderData<typeof loader>();
-    return (
-        <div>
-            {Object.values(accounts).map(account => <div key={account.id}>{account.displayName}</div>)}
-        </div>
-    )
+    const transactionsDirectory = 'app/data/transactions'
+    const files = await fs.readdir(transactionsDirectory, 'utf8')
+    console.log(files)
+    const latestYear = files
+        .map((file) => parseInt(file.split('.')[0]))
+        .filter((year) => Boolean(year))
+        .sort()
+        .reverse()[0]
+    console.log(latestYear)
+    return redirect(`/${latestYear}`)
 }

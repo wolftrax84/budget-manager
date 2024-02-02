@@ -1,5 +1,5 @@
 import { cssBundleHref } from '@remix-run/css-bundle'
-import type { LinksFunction } from '@remix-run/node'
+import type { ActionFunctionArgs, LinksFunction } from '@remix-run/node'
 import {
     Links,
     LiveReload,
@@ -7,15 +7,40 @@ import {
     Outlet,
     Scripts,
     ScrollRestoration,
+    json,
+    redirect,
+    useLoaderData,
 } from '@remix-run/react'
 import stylesheet from '~/tailwind.css'
+import Header from './header'
+import { promises as fs } from 'fs'
 
 export const links: LinksFunction = () => [
     { rel: 'stylesheet', href: stylesheet },
     ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
 ]
 
+export const loader = async () => {
+    const transactionsDirectory = 'app/data/transactions'
+    const files = await fs.readdir(transactionsDirectory, 'utf8')
+    return json({
+        years: files
+            .map((file) => parseInt(file.split('.')[0]))
+            .sort()
+            .reverse(),
+    })
+}
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+    const formData = await request.formData()
+    // const action =
+    const year = formData.get('year')
+    const month = formData.get('month')
+    return redirect(`/${year}/${month !== 'Summary' ? month : ''}`)
+}
+
 export default function App() {
+    const { years } = useLoaderData<typeof loader>()
     return (
         <html lang='en' data-theme='dark'>
             <head>
@@ -27,23 +52,10 @@ export default function App() {
                 <Meta />
                 <Links />
             </head>
-            <body>
-                <div className='bg-teal-500'>
-                    <div className='max-w-screen-2xl m-auto w-full py-2 flex gap-4 items-center'>
-                        <h1 className='text-xl text-black'>Budget Manager</h1>
-                        <div className='flex-1'></div>
-                        <select className='select select-secondary w-full max-w-xs'>
-                            <option>Han Solo</option>
-                            <option>Greedo</option>
-                        </select>
-                        <select className='select select-bordered w-full max-w-xs'>
-                            <option>Han Solo</option>
-                            <option>Greedo</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="max-w-screen-2xl m-auto w-full">
-                <Outlet />
+            <body className='h-screen flex flex-col'>
+                <Header years={years} />
+                <div className='m-auto w-full max-w-screen-2xl flex-1 overflow-hidden'>
+                    <Outlet />
                 </div>
                 <ScrollRestoration />
                 <Scripts />

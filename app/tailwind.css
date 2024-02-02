@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+option {
+    @apply py-4;
+}
+
+th {
+    @apply text-accent;
+}
+
+td {
+    @apply text-gray-200;
+}
