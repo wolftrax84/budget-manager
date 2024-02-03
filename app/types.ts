@@ -10,11 +10,13 @@ export type Transaction = {
 }
 
 export type Expense = Transaction & {
+    kind: 'expense'
     vendorId: string
-    subcategory: string | null
+    subcategory: string
 }
 
 export type Transfer = Transaction & {
+    kind: 'transfer'
     transferAccountId: string
 }
 

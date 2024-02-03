@@ -1,0 +1,14 @@
+{
+    "geico": {
+        "id": "geico",
+        "displayName": "Geico",
+        "category": null,
+        "subcategory": null
+    },
+    "zaxbys": {
+        "id": "zaxbys",
+        "displayName": "Zaxby's",
+        "category": "food",
+        "subcategory": "out"
+    }
+}

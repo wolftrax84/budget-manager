@@ -6,23 +6,22 @@ import {
 } from '@remix-run/node'
 import { Form, NavLink, useLoaderData } from '@remix-run/react'
 import { promises as fs } from 'fs'
-import { Info } from 'luxon'
-import { Account } from '~/types'
+import { DateTime, Info } from 'luxon'
+import { Account, Expense, Transfer } from '~/types'
 import {
     getUploadedTransactions,
     setUploadedTransactions,
 } from './uploadService'
 import { process as processChase } from '~/processors/chase'
+import { process as processCoastal } from '~/processors/coastal'
+import { process as processDiscover } from '~/processors/discover'
+import { getAccounts, setNewBalances } from '~/data/accountsService'
 
 const fileUploadTypes = ['checking', 'credit']
 
 export const loader = async () => {
     console.log('in loader')
-    const accounts = Object.values(
-        JSON.parse(
-            await fs.readFile('app/data/accounts.json', 'utf-8')
-        ) as Record<string, Account>
-    ).sort((a1, a2) => {
+    const accounts = Object.values(await getAccounts()).sort((a1, a2) => {
         const a1FileUpload = fileUploadTypes.includes(a1.type)
         const a2FileUpload = fileUploadTypes.includes(a2.type)
         if (a1FileUpload && !a2FileUpload) return -1
@@ -37,27 +36,46 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const uploadHandler = unstable_createMemoryUploadHandler({
         maxPartSize: 500_000,
     })
-    const formDataBlah = await unstable_parseMultipartFormData(
+    const formData = await unstable_parseMultipartFormData(
         request,
         uploadHandler
     )
-
-    // Hard code file processors for now
-    const chaseCreditFile = formDataBlah.get('chase-credit-upload') as Blob
-    if (chaseCreditFile.size !== 0) {
-        const uploadedTransactions = processChase(await chaseCreditFile.text())
-        setUploadedTransactions(uploadedTransactions, 'chase-credit')
-    }
-    // const coastal = formDataBlah.get('coastal-checking-upload') as Blob
-    // if (coastal.size !== 0) {
-    // console.log(await coastal.text())
-    // } else {
-    // console.log('NO FILE')
-    // }
-
-    // const formData = await request.formData()
-    // console.log('woohoo!', Object.fromEntries(formData))
-    // console.log(formData.get('chase-credit-upload'))
+    const newBalances: Array<[string, number]> = []
+    Object.values(await getAccounts()).forEach(async (account) => {
+        if (fileUploadTypes.includes(account.type)) {
+            const file = formData.get(`${account.id}-upload`) as Blob
+            if (file.size !== 0) {
+                let uploadedTransactions
+                switch (account.id.split('-')[0]) {
+                    case 'chase':
+                        uploadedTransactions = processChase(
+                            await file.text(),
+                            account.id
+                        )
+                        break
+                    case 'coastal':
+                        uploadedTransactions = processCoastal(await file.text())
+                        break
+                    case 'discover':
+                        uploadedTransactions = processDiscover(
+                            await file.text()
+                        )
+                        break
+                }
+                if (uploadedTransactions)
+                    setUploadedTransactions(uploadedTransactions, account.id)
+            }
+        } else {
+            const balance = formData.get(`${account.id}-balance`) as string
+            if (balance) {
+                newBalances.push([account.id, parseFloat(balance)])
+            }
+        }
+    })
+    const year = parseInt(formData.get('year') as string)
+    const month = parseInt(formData.get('month') as string)
+    console.log(month)
+    setNewBalances(newBalances, year, month)
     return true
 }
 
@@ -88,9 +106,12 @@ export default function Upload() {
                         <select
                             className='select select-sm select-accent w-full max-w-xs'
                             name='month'
+                            value={0}
                         >
-                            {Info.months().map((month) => (
-                                <option key={month}>{month}</option>
+                            {Info.months().map((month, index) => (
+                                <option key={month} value={index}>
+                                    {month}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -116,7 +137,6 @@ export default function Upload() {
             </Form>
             <div className='flex-0 w-0.5 self-stretch bg-gray-600' />
             <div className='flex-[3] py-4 pl-4 overflow-auto'>
-                Other Side
                 {Object.entries(uploadedTransactions).map(
                     ([account, transactions]) => (
                         <div key={account}>
@@ -126,9 +146,33 @@ export default function Upload() {
                                         ?.displayName
                                 }
                             </h1>
-                            {transactions.map((transaction) => (
-                                <p key={transaction[1].id}>{transaction[0]}</p>
-                            ))}
+                            {transactions.map((transaction) => {
+                                const transactionObject = {
+                                    ...transaction[1],
+                                    date: DateTime.fromISO(
+                                        transaction[1]
+                                            .date as unknown as string,
+                                        {
+                                            zone: 'utc',
+                                        }
+                                    ),
+                                }
+                                return transactionObject.kind === 'expense' ? (
+                                    <UploadedExpense
+                                        transaction={[
+                                            transaction[0],
+                                            transactionObject,
+                                        ]}
+                                    />
+                                ) : (
+                                    <UploadedTransfer
+                                        transaction={[
+                                            transaction[0],
+                                            transactionObject,
+                                        ]}
+                                    />
+                                )
+                            })}
                         </div>
                     )
                 )}
@@ -156,6 +200,65 @@ const AccountField = ({ account }: { account: Account }) => {
                     className='input input-bordered input-sm input-accent w-full'
                 />
             )}
+        </div>
+    )
+}
+
+const UploadedExpense = ({
+    transaction: [rawTransaction, expense],
+}: {
+    transaction: [string, Expense]
+}) => {
+    if (!expense.vendorId || !expense.category || !expense.subcategory) {
+        return (
+            <div key={expense.id}>
+                <div className='flex gap-4'>
+                    <div className='form-control flex-row items-center'>
+                        <div className='label'>
+                            <span className='label-text'>Vendor</span>
+                        </div>
+                        <select
+                            className='select select-sm select-bordered'
+                            name={`${expense.id}-vendorId`}
+                        ></select>
+                    </div>
+                    <div className='form-control flex-row items-center'>
+                        <div className='label'>
+                            <span className='label-text'>Category</span>
+                        </div>
+                        <select
+                            className='select select-sm select-bordered'
+                            name={`${expense.id}-category`}
+                        ></select>
+                    </div>
+                    <div className='form-control flex-row items-center'>
+                        <div className='label'>
+                            <span className='label-text'>Sub-category</span>
+                        </div>
+                        <select
+                            className='select select-sm select-bordered'
+                            name={`${expense.id}-subcategory`}
+                        ></select>
+                    </div>
+                </div>
+                <p className='italic text-gray-500'>{rawTransaction}</p>
+                <hr className='w-full h-[1] border-gray-500' />
+            </div>
+        )
+    }
+    return null
+}
+
+const UploadedTransfer = ({
+    transaction: [rawTransaction, transfer],
+}: {
+    transaction: [string, Transfer]
+}) => {
+    return (
+        <div key={transfer.id}>
+            <p>{rawTransaction}</p>
+            <p>{JSON.stringify(transfer)}</p>
+            <p>{transfer.date.toLocaleString(DateTime.DATE_SHORT)}</p>
         </div>
     )
 }
