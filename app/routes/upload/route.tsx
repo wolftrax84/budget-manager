@@ -5,9 +5,8 @@ import {
     unstable_parseMultipartFormData,
 } from '@remix-run/node'
 import { Form, NavLink, useLoaderData } from '@remix-run/react'
-import { promises as fs } from 'fs'
 import { DateTime, Info } from 'luxon'
-import { Account, Expense, Transfer } from '~/types'
+import { Account, Expense, Transfer, Vendor } from '~/types'
 import {
     getUploadedTransactions,
     setUploadedTransactions,
@@ -16,6 +15,8 @@ import { process as processChase } from '~/processors/chase'
 import { process as processCoastal } from '~/processors/coastal'
 import { process as processDiscover } from '~/processors/discover'
 import { getAccounts, setNewBalances } from '~/data/accountsService'
+import { getVendors } from '~/data/vendorsService'
+import DateDisplay from '~/components/DateDisplay'
 
 const fileUploadTypes = ['checking', 'credit']
 
@@ -28,8 +29,9 @@ export const loader = async () => {
         if (a2FileUpload && !a1FileUpload) return 1
         return a1.displayName.localeCompare(a2.displayName)
     })
+    const vendors = await getVendors()
     const uploadedTransactions = getUploadedTransactions()
-    return json({ accounts, uploadedTransactions })
+    return json({ accounts, uploadedTransactions, vendors })
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -48,7 +50,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                 let uploadedTransactions
                 switch (account.id.split('-')[0]) {
                     case 'chase':
-                        uploadedTransactions = processChase(
+                        uploadedTransactions = await processChase(
                             await file.text(),
                             account.id
                         )
@@ -80,7 +82,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 }
 
 export default function Upload() {
-    const { accounts, uploadedTransactions } = useLoaderData<typeof loader>()
+    const { accounts, uploadedTransactions, vendors } = useLoaderData<typeof loader>()
     return (
         <div className='flex h-full'>
             <Form
@@ -117,7 +119,7 @@ export default function Upload() {
                     </div>
                 </div>
                 {accounts.map((account) => (
-                    <AccountField account={account} />
+                    <AccountField key={account.id} account={account} />
                 ))}
                 <div className='flex justify-between gap-4'>
                     <button
@@ -163,6 +165,7 @@ export default function Upload() {
                                             transaction[0],
                                             transactionObject,
                                         ]}
+                                        vendor={vendors[transactionObject.vendorId]}
                                     />
                                 ) : (
                                     <UploadedTransfer
@@ -205,13 +208,14 @@ const AccountField = ({ account }: { account: Account }) => {
 }
 
 const UploadedExpense = ({
-    transaction: [rawTransaction, expense],
+    transaction: [rawTransaction, expense], vendor
 }: {
-    transaction: [string, Expense]
+    transaction: [string, Expense], vendor?: Vendor
 }) => {
-    if (!expense.vendorId || !expense.category || !expense.subcategory) {
-        return (
-            <div key={expense.id}>
+    return (
+        <div key={expense.id}>
+        {!expense.vendorId || !expense.category || !expense.subcategory ? (<>
+                <p>{expense.vendorId}</p>
                 <div className='flex gap-4'>
                     <div className='form-control flex-row items-center'>
                         <div className='label'>
@@ -220,6 +224,7 @@ const UploadedExpense = ({
                         <select
                             className='select select-sm select-bordered'
                             name={`${expense.id}-vendorId`}
+                            defaultValue={expense.vendorId}
                         ></select>
                     </div>
                     <div className='form-control flex-row items-center'>
@@ -241,12 +246,15 @@ const UploadedExpense = ({
                         ></select>
                     </div>
                 </div>
-                <p className='italic text-gray-500'>{rawTransaction}</p>
-                <hr className='w-full h-[1] border-gray-500' />
+                <p className='italic text-gray-500'>{rawTransaction}</p></>
+        ) : (<div className='flex gap-4 text-success'>
+            <span><DateDisplay date={expense.date} /></span>
+            <span>{expense.amount}</span>
+        <span>{vendor?.displayName}</span><span>{expense.category}|{expense.subcategory}</span></div>)}
+                <hr className='w-full h-[1] border-gray-500 my-2' />
             </div>
-        )
-    }
-    return null
+        
+    )
 }
 
 const UploadedTransfer = ({
@@ -258,7 +266,7 @@ const UploadedTransfer = ({
         <div key={transfer.id}>
             <p>{rawTransaction}</p>
             <p>{JSON.stringify(transfer)}</p>
-            <p>{transfer.date.toLocaleString(DateTime.DATE_SHORT)}</p>
+            <p><DateDisplay date={transfer.date} /></p>
         </div>
     )
 }
