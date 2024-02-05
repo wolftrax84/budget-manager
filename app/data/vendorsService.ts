@@ -27,5 +27,6 @@ export const getVendorFromAlias = async (alias: string) => {
             VENDOR_ALIAS_FILE_PATH
         )
     }
+    console.log(vendorAliases, alias)
     return vendorAliases[alias]
 }

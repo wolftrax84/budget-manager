@@ -13,6 +13,7 @@ export type Expense = Transaction & {
     kind: 'expense'
     vendorId: string
     subcategory: string
+    description: string
 }
 
 export type Transfer = Transaction & {
@@ -32,4 +33,11 @@ export type Vendor = {
     displayName: string
     category: string | null
     subcategory: string | null
+}
+
+export type Category = {
+    id: string
+    displayName: string
+    color: string
+    subcategories: string[]
 }

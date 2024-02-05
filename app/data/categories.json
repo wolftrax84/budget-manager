@@ -1,0 +1,32 @@
+{
+    "food": {
+        "id": "food",
+        "displayName": "Food",
+        "color": "violet-500",
+        "subcategories": ["groceries", "out"]
+    },
+    "auto": {
+        "id": "auto",
+        "displayName": "Auto",
+        "color": "amber-500",
+        "subcategories": ["bills", "gas", "maintenance"]
+    },
+    "living": {
+        "id": "living",
+        "displayName": "Living Expenses",
+        "color": "green-500",
+        "subcategories": ["bills", "consumables", "housing"]
+    },
+    "entertainment": {
+        "id": "entertainment",
+        "displayName": "Entertainment",
+        "color": "pink-500",
+        "subcategories": ["bills", "games", "hobby", "social"]
+    },
+    "other": {
+        "id": "other",
+        "displayName": "Other",
+        "color": "sky-500",
+        "subcategories": ["travel"]
+    }
+}

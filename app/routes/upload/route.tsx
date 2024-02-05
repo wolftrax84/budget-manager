@@ -6,7 +6,7 @@ import {
 } from '@remix-run/node'
 import { Form, NavLink, useLoaderData } from '@remix-run/react'
 import { DateTime, Info } from 'luxon'
-import { Account, Expense, Transfer, Vendor } from '~/types'
+import { Account, Category, Expense, Transfer, Vendor } from '~/types'
 import {
     getUploadedTransactions,
     setUploadedTransactions,
@@ -17,11 +17,12 @@ import { process as processDiscover } from '~/processors/discover'
 import { getAccounts, setNewBalances } from '~/data/accountsService'
 import { getVendors } from '~/data/vendorsService'
 import DateDisplay from '~/components/DateDisplay'
+import { useState } from 'react'
+import { getCategories } from '~/data/categoriesService'
 
 const fileUploadTypes = ['checking', 'credit']
 
 export const loader = async () => {
-    console.log('in loader')
     const accounts = Object.values(await getAccounts()).sort((a1, a2) => {
         const a1FileUpload = fileUploadTypes.includes(a1.type)
         const a2FileUpload = fileUploadTypes.includes(a2.type)
@@ -31,7 +32,8 @@ export const loader = async () => {
     })
     const vendors = await getVendors()
     const uploadedTransactions = getUploadedTransactions()
-    return json({ accounts, uploadedTransactions, vendors })
+    const categories = await getCategories()
+    return json({ accounts, uploadedTransactions, vendors, categories })
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -76,13 +78,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     })
     const year = parseInt(formData.get('year') as string)
     const month = parseInt(formData.get('month') as string)
-    console.log(month)
     setNewBalances(newBalances, year, month)
     return true
 }
 
 export default function Upload() {
-    const { accounts, uploadedTransactions, vendors } = useLoaderData<typeof loader>()
+    const { accounts, uploadedTransactions, vendors, categories } =
+        useLoaderData<typeof loader>()
     return (
         <div className='flex h-full'>
             <Form
@@ -165,7 +167,8 @@ export default function Upload() {
                                             transaction[0],
                                             transactionObject,
                                         ]}
-                                        vendor={vendors[transactionObject.vendorId]}
+                                        vendors={vendors}
+                                        categories={categories}
                                     />
                                 ) : (
                                     <UploadedTransfer
@@ -208,52 +211,107 @@ const AccountField = ({ account }: { account: Account }) => {
 }
 
 const UploadedExpense = ({
-    transaction: [rawTransaction, expense], vendor
+    transaction: [rawTransaction, expense],
+    categories,
+    vendors,
 }: {
-    transaction: [string, Expense], vendor?: Vendor
+    transaction: [string, Expense]
+    vendors: Record<string, Vendor>
+    categories: Record<string, Category>
 }) => {
+    const [vendorId, setVendorId] = useState(expense.vendorId)
+    const [category, setCategory] = useState(expense.category)
+    const [subcategory, setSubcategory] = useState(expense.subcategory)
     return (
         <div key={expense.id}>
-        {!expense.vendorId || !expense.category || !expense.subcategory ? (<>
-                <p>{expense.vendorId}</p>
-                <div className='flex gap-4'>
-                    <div className='form-control flex-row items-center'>
-                        <div className='label'>
-                            <span className='label-text'>Vendor</span>
+            {!expense.vendorId || !expense.category || !expense.subcategory ? (
+                <>
+                    <div className='flex gap-4'>
+                        <div className='form-control flex-row items-center'>
+                            <div className='label'>
+                                <span className='label-text'>Vendor</span>
+                            </div>
+                            <select
+                                className={`select select-sm select-bordered ${
+                                    !vendorId ? 'select-warning' : ''
+                                }`}
+                                name={`${expense.id}-vendorId`}
+                                defaultValue={expense.vendorId}
+                                onChange={(e) => setVendorId(e.target.value)}
+                                disabled={Boolean(expense.vendorId)}
+                            >
+                                <option value={''} />
+                                {Object.values(vendors).map((vendor) => (
+                                    <option key={vendor.id} value={vendor.id}>
+                                        {vendor.displayName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <select
-                            className='select select-sm select-bordered'
-                            name={`${expense.id}-vendorId`}
-                            defaultValue={expense.vendorId}
-                        ></select>
-                    </div>
-                    <div className='form-control flex-row items-center'>
-                        <div className='label'>
-                            <span className='label-text'>Category</span>
+                        <div className='form-control flex-row items-center'>
+                            <div className='label'>
+                                <span className='label-text'>Category</span>
+                            </div>
+                            <select
+                                className={`select select-sm select-bordered ${
+                                    !category ? 'select-warning' : ''
+                                }`}
+                                name={`${expense.id}-category`}
+                                onChange={(e) => setCategory(e.target.value)}
+                                defaultValue={expense.category || ''}
+                            >
+                                <option value=''></option>
+                                {Object.values(categories).map((category) => (
+                                    <option
+                                        key={category.id}
+                                        value={category.id}
+                                    >
+                                        {category.displayName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                        <select
-                            className='select select-sm select-bordered'
-                            name={`${expense.id}-category`}
-                        ></select>
-                    </div>
-                    <div className='form-control flex-row items-center'>
-                        <div className='label'>
-                            <span className='label-text'>Sub-category</span>
+                        <div className='form-control flex-row items-center'>
+                            <div className='label'>
+                                <span className='label-text'>Sub-category</span>
+                            </div>
+                            <select
+                                className={`select select-sm select-bordered ${
+                                    !subcategory ? 'select-warning' : ''
+                                }`}
+                                name={`${expense.id}-subcategory`}
+                                defaultValue={expense.subcategory}
+                                onChange={(e) => setSubcategory(e.target.value)}
+                            >
+                                {categories[category]?.subcategories.map(
+                                    (subcategory) => (
+                                        <option
+                                            key={subcategory}
+                                            value={subcategory}
+                                        >
+                                            {subcategory}
+                                        </option>
+                                    )
+                                )}
+                            </select>
                         </div>
-                        <select
-                            className='select select-sm select-bordered'
-                            name={`${expense.id}-subcategory`}
-                        ></select>
                     </div>
+                    <p className='italic text-gray-500'>{rawTransaction}</p>
+                </>
+            ) : (
+                <div className='flex gap-4 text-success'>
+                    <span>
+                        <DateDisplay date={expense.date} />
+                    </span>
+                    <span>{expense.amount}</span>
+                    <span>{vendors[expense.vendorId]?.displayName}</span>
+                    <span>
+                        {expense.category}|{expense.subcategory}
+                    </span>
                 </div>
-                <p className='italic text-gray-500'>{rawTransaction}</p></>
-        ) : (<div className='flex gap-4 text-success'>
-            <span><DateDisplay date={expense.date} /></span>
-            <span>{expense.amount}</span>
-        <span>{vendor?.displayName}</span><span>{expense.category}|{expense.subcategory}</span></div>)}
-                <hr className='w-full h-[1] border-gray-500 my-2' />
-            </div>
-        
+            )}
+            <hr className='w-full h-[1] border-gray-500 my-2' />
+        </div>
     )
 }
 
@@ -266,7 +324,9 @@ const UploadedTransfer = ({
         <div key={transfer.id}>
             <p>{rawTransaction}</p>
             <p>{JSON.stringify(transfer)}</p>
-            <p><DateDisplay date={transfer.date} /></p>
+            <p>
+                <DateDisplay date={transfer.date} />
+            </p>
         </div>
     )
 }

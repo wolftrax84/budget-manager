@@ -13,3 +13,7 @@ th {
 td {
     @apply text-gray-200;
 }
+
+.form-control.flex-row .label {
+    @apply mr-1;
+}
