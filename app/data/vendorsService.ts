@@ -27,6 +27,14 @@ export const getVendorFromAlias = async (alias: string) => {
             VENDOR_ALIAS_FILE_PATH
         )
     }
-    console.log(vendorAliases, alias)
     return vendorAliases[alias]
+}
+
+export const setVendorAlias = async (vendorId: string, alias: string) => {
+    if (!vendorAliases) {
+        vendorAliases = await load<Record<string, string>>(
+            VENDOR_ALIAS_FILE_PATH
+        )
+    }
+    vendorAliases[alias] = vendorId
 }

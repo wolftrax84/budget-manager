@@ -14,19 +14,25 @@
     "living": {
         "id": "living",
         "displayName": "Living Expenses",
-        "color": "green-500",
+        "color": "pink-500",
         "subcategories": ["bills", "consumables", "housing"]
     },
     "entertainment": {
         "id": "entertainment",
         "displayName": "Entertainment",
-        "color": "pink-500",
+        "color": "sky-500",
         "subcategories": ["bills", "games", "hobby", "social"]
     },
     "other": {
         "id": "other",
         "displayName": "Other",
-        "color": "sky-500",
+        "color": "green-500",
         "subcategories": ["travel"]
+    },
+    "transfer": {
+        "id": "transfer",
+        "displayName": "Transfer",
+        "color": "red-600",
+        "subcategories": ["transfer", "investment"]
     }
 }

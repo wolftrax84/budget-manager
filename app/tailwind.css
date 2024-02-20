@@ -14,6 +14,11 @@ td {
     @apply text-gray-200;
 }
 
-.form-control.flex-row .label {
-    @apply mr-1;
+.form-control.flex-row {
+    @apply gap-2;
+}
+
+input {
+    @apply placeholder:text-gray-500;
+    @apply placeholder:italic;
 }

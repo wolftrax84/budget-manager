@@ -8,9 +8,10 @@ export default function Header({ years }: { years: number[] }) {
     const { pathname } = useLocation()
     const [_, urlYear, month] = pathname.split('/')
     const year = parseInt(urlYear)
+    console.log(year, years)
     return (
         <div className='bg-accent'>
-            <div className='max-w-screen-2xl m-auto w-full py-2 gap-4 flex items-center justify-between'>
+            <div className='max-w-[1600px] m-auto w-full py-2 gap-4 flex items-center justify-between'>
                 <h1 className='text-xl text-black'>Budget Manager</h1>
                 <NavLink to={'/upload'} className='btn'>
                     Upload

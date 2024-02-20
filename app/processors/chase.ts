@@ -1,12 +1,12 @@
 import { DateTime } from 'luxon'
 import { getVendor, getVendorFromAlias } from '~/data/vendorsService'
-import { Expense, Transfer } from '~/types'
+import { Expense, RawTransaction, Transfer } from '~/types'
 
 export const process = async (
     file: string,
     accountId: string
-): Promise<Array<[string, Expense | Transfer]>> => {
-    const lines = file.split('\n')
+): Promise<Array<[RawTransaction, Expense | Transfer]>> => {
+    const lines = file.trim().split('\n')
     lines.shift()
     return await Promise.all(
         lines.map(async (line, index) => {
@@ -16,7 +16,8 @@ export const process = async (
                 zone: 'utc',
             })
             const amount = parseFloat(parts[5])
-            const vendorId = await getVendorFromAlias(parts[2])
+            const vendor = parts[2]
+            const vendorId = await getVendorFromAlias(vendor)
             if (vendorId) {
                 console.log(vendorId)
             }
@@ -48,8 +49,16 @@ export const process = async (
                           kind: 'expense',
                           description: '',
                       } satisfies Expense)
-
-            return [line, transaction] as [string, Expense | Transfer]
+            const rawTransaction = {
+                amount: parts[5],
+                date: parts[0],
+                vendor: parts[2],
+                raw: line,
+            }
+            return [rawTransaction, transaction] as [
+                RawTransaction,
+                Expense | Transfer
+            ]
         })
     )
 }

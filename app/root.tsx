@@ -26,6 +26,7 @@ export const loader = async () => {
     return json({
         years: files
             .map((file) => parseInt(file.split('.')[0]))
+            .filter((file) => Boolean(file))
             .sort()
             .reverse(),
     })
@@ -54,7 +55,7 @@ export default function App() {
             </head>
             <body className='h-screen flex flex-col'>
                 <Header years={years} />
-                <div className='m-auto w-full max-w-screen-2xl flex-1 overflow-hidden'>
+                <div className='m-auto w-full max-w-[1600px] flex-1 overflow-hidden'>
                     <Outlet />
                 </div>
                 <ScrollRestoration />

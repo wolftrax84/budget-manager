@@ -35,5 +35,4 @@ export const setNewBalances = async (
             accounts[accountId].history[year][month] = balance
         else accounts[accountId].history[year] = { [month]: balance }
     })
-    await saveAccounts()
 }
