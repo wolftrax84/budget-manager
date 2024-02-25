@@ -2,7 +2,7 @@
     "geico": {
         "id": "geico",
         "displayName": "Geico",
-        "category": null,
+        "category": "auto",
         "subcategory": null
     },
     "zaxbys": {
@@ -10,5 +10,11 @@
         "displayName": "Zaxby's",
         "category": "food",
         "subcategory": "out"
+    },
+    "publix": {
+        "id": "publix",
+        "displayName": "Publix",
+        "category": null,
+        "subcategory": null
     }
 }

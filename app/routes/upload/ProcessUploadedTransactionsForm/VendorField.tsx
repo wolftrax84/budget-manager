@@ -1,16 +1,14 @@
 import { Form, useLoaderData, useSubmit } from '@remix-run/react'
 import { Dispatch, SetStateAction } from 'react'
-import { Transaction } from '~/types'
+import { RawTransaction } from '~/types'
 import { loader } from '../route'
 
 export default function VendorField({
     transaction,
-    rawVendorAlias,
     vendorId,
     setVendorId,
 }: {
-    transaction: Transaction
-    rawVendorAlias: string
+    transaction: RawTransaction
     vendorId: string
     setVendorId: Dispatch<SetStateAction<string>>
 }) {
@@ -23,7 +21,7 @@ export default function VendorField({
                     <span className='label-text'>Vendor</span>
                 </div>
                 <Form
-                    action='updatevendor'
+                    action='updatetransactionvendor'
                     method='post'
                     onChange={(event) => submit(event.currentTarget)}
                 >
@@ -43,7 +41,8 @@ export default function VendorField({
                             </option>
                         ))}
                     </select>
-                    <input hidden name={`vendorAlias`} value={rawVendorAlias} />
+                    <input hidden name={`vendorAlias`} value={transaction.vendorAlias} />
+                    <input hidden name='transactionId' value={transaction.id} />
                 </Form>
                 <input
                     hidden

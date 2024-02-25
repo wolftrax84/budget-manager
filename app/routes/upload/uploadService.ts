@@ -1,6 +1,6 @@
 import { ProcessedExpenseData, RawTransaction, Transaction } from '~/types'
 
-const uploadedTransactions: Record<string, [RawTransaction, Transaction][]> = {}
+const uploadedTransactions: Record<string, RawTransaction[]> = {}
 
 export const getUploadedTransactions = () => {
     return uploadedTransactions
@@ -11,6 +11,12 @@ export const setUploadedTransactions = (
     account: string
 ) => {
     uploadedTransactions[account] = transactions
+}
+
+export const addUploadedTransaction = (transaction: RawTransaction) => {
+    uploadedTransactions[transaction.accountId] ?
+    uploadedTransactions[transaction.accountId].push(transaction) :
+    uploadedTransactions[transaction.accountId] = [transaction]
 }
 
 export const updateProcessedTransactions = (

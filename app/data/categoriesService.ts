@@ -11,3 +11,10 @@ export const getCategories = async () => {
     }
     return categories
 }
+
+// export const updateCategories = async (categoriesToUpdate: Record<string, Category>) => {
+//     if (!categories) {
+//         categories = await load<Record<string, Category>>(CATEGORIES_FILE_PATH)
+//     }
+    
+// }

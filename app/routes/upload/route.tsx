@@ -47,13 +47,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         if (fileUploadTypes.includes(account.type)) {
             const file = formData.get(`${account.id}-upload`) as Blob
             if (file.size !== 0) {
-                let uploadedTransactions
+                // let uploadedTransactions
                 switch (account.id.split('-')[0]) {
                     case 'chase':
-                        uploadedTransactions = await processChase(
-                            await file.text(),
-                            account.id
-                        )
+                        // uploadedTransactions = await processChase(
+                         await processChase(await file.text(), account.id)
+                            // account.id
+                        // )
                         break
                     // case 'coastal':
                     //     uploadedTransactions = processCoastal(await file.text())
@@ -64,8 +64,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
                     //     )
                     //     break
                 }
-                if (uploadedTransactions)
-                    setUploadedTransactions(uploadedTransactions, account.id)
+                // if (uploadedTransactions)
+                //     setUploadedTransactions(uploadedTransactions, account.id)
             }
         } else {
             const balance = formData.get(`${account.id}-balance`) as string

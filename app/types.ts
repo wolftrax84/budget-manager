@@ -1,9 +1,7 @@
 import { DateTime } from 'luxon'
 
-export type RawTransaction = {
-    date: string
-    vendor: string
-    amount: string
+export type RawTransaction = Transaction & {
+    vendorAlias: string
     raw: string
 }
 
@@ -24,6 +22,7 @@ export type Transaction = {
     description: string
     vendorId: string
     subcategory: string
+    raw: string
 }
 
 // export type Expense = Transaction & {

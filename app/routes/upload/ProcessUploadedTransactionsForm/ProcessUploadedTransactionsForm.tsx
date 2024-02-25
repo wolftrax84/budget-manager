@@ -2,7 +2,7 @@ import { Form, useLoaderData } from '@remix-run/react'
 import { loader } from '../route'
 import { DateTime } from 'luxon'
 import ProcessTransaction from './ProcessTransaction'
-import { Transaction } from '~/types'
+import { RawTransaction } from '~/types'
 
 export default function ProcessUploadedTransactionsForm() {
     const { accounts, uploadedTransactions } = useLoaderData<typeof loader>()
@@ -23,22 +23,22 @@ export default function ProcessUploadedTransactionsForm() {
                         </h1>
                         {transactions.map((transaction) => {
                             const transactionObject = {
-                                ...transaction[1],
+                                ...transaction,
                                 date: DateTime.fromISO(
-                                    transaction[1].date as unknown as string,
+                                    transaction.date as unknown as string,
                                     {
                                         zone: 'utc',
                                     }
                                 ),
-                            } as Transaction
+                            } as RawTransaction
                             return (
+                                <>
                                 <ProcessTransaction
-                                    transaction={[
-                                        transaction[0],
-                                        transactionObject,
-                                    ]}
-                                    key={transactionObject.id}
+                                    transaction={transactionObject}
+                                    key={transaction.id}
                                 />
+                                <hr className='w-full h-[1] border-gray-500 my-2' />
+                                </>
                             )
                         })}
                     </div>

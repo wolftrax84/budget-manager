@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import DateDisplay from '~/components/DateDisplay'
-import { Transaction, RawTransaction } from '~/types'
+import { RawTransaction } from '~/types'
 import { useLoaderData } from '@remix-run/react'
 import { loader } from '../route'
 import VendorField from './VendorField'
@@ -9,11 +9,11 @@ import SubcategoryField from './SubcategoryField'
 import DescriptionField from './DescriptionField'
 
 export default function Processtransaction({
-    transaction: [rawTransaction, transaction],
+    transaction,
 }: {
-    transaction: [RawTransaction, Transaction]
+    transaction: RawTransaction
 }) {
-    const { vendors, categories } = useLoaderData<typeof loader>()
+    const { vendors } = useLoaderData<typeof loader>()
 
     const [vendorId, setVendorId] = useState(transaction.vendorId)
     const [category, setCategory] = useState(transaction.category)
@@ -49,51 +49,49 @@ export default function Processtransaction({
         if (category === 'new_category') setSubcategory('new_subcategory')
     }, [category])
 
+    const [processed, setProcessed] = useState(Boolean(transaction.vendorId && transaction.category && transaction.subcategory))
+
+    if (processed) {
+        return (<><div className='flex gap-4 text-success'>
+        <span>
+            <DateDisplay date={transaction.date} />
+        </span>
+        <span>{transaction.amount}</span>
+        <span>{vendors[transaction.vendorId]?.displayName}</span>
+        <span>
+            {transaction.category} | {transaction.subcategory}
+        </span>
+        <button onClick={() => setProcessed(false)}>Edit</button>
+    </div></>)
+    }
+
+    console.log(transaction.vendorId, transaction.category, transaction.subcategory)
     return (
         <div key={transaction.id}>
-            {!transaction.vendorId ||
-            !transaction.category ||
-            !transaction.subcategory ? (
-                <>
-                    <div className='flex gap-4 items-start'>
-                        <VendorField
-                            transaction={transaction}
-                            rawVendorAlias={rawTransaction.vendor}
-                            vendorId={vendorId}
-                            setVendorId={setVendorId}
-                        />
-                        <CategoryField
-                            transaction={transaction}
-                            category={category}
-                            categoryLock={categoryLock}
-                            setCategory={setCategory}
-                            setCategoryLock={setCategoryLock}
-                        />
-                        <SubcategoryField
-                            category={category}
-                            transaction={transaction}
-                            subcategory={subcategory}
-                            subcategoryLock={subcategoryLock}
-                            setSubcategory={setSubcategory}
-                            setSubcategoryLock={setSubcategoryLock}
-                        />
-                        <DescriptionField transaction={transaction} />
-                    </div>
-                    <p className='italic text-gray-500'>{rawTransaction.raw}</p>
-                </>
-            ) : (
-                <div className='flex gap-4 text-success'>
-                    <span>
-                        <DateDisplay date={transaction.date} />
-                    </span>
-                    <span>{transaction.amount}</span>
-                    <span>{vendors[transaction.vendorId]?.displayName}</span>
-                    <span>
-                        {transaction.category} | {transaction.subcategory}
-                    </span>
-                </div>
-            )}
-            <hr className='w-full h-[1] border-gray-500 my-2' />
+                <p className='italic text-gray-500'><DateDisplay date={transaction.date}/> | {transaction.amount} | {transaction.vendorAlias}</p>
+            <div className='flex gap-4 items-start'>
+                <VendorField
+                    transaction={transaction}
+                    vendorId={vendorId}
+                    setVendorId={setVendorId}
+                />
+                <CategoryField
+                    transaction={transaction}
+                    category={category}
+                    categoryLock={categoryLock}
+                    setCategory={setCategory}
+                    setCategoryLock={setCategoryLock}
+                />
+                <SubcategoryField
+                    category={category}
+                    transaction={transaction}
+                    subcategory={subcategory}
+                    subcategoryLock={subcategoryLock}
+                    setSubcategory={setSubcategory}
+                    setSubcategoryLock={setSubcategoryLock}
+                />
+                <DescriptionField transaction={transaction} />
+            </div>
         </div>
     )
 }
